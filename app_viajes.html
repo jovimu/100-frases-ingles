@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel English AI - 100 Frases Completas</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+    .card { background: white; width: 100%; max-width: 520px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 24px; box-sizing: border-box; }
+    h1 { font-size: 1.4rem; color: #1a73e8; margin-top: 0; text-align: center; }
+    .category-select, .phrase-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.95rem; margin-bottom: 15px; }
+    .box { background: #f8f9fa; border-left: 4px solid #1a73e8; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+    .label { font-size: 0.75rem; text-transform: uppercase; color: #5f6368; font-weight: bold; margin-bottom: 4px; }
+    .text-en { font-size: 1.1rem; font-weight: bold; color: #202124; }
+    .text-es { font-size: 0.95rem; color: #5f6368; margin-top: 4px; }
+    .phonetic { font-size: 0.9rem; color: #d93025; font-style: italic; margin-top: 6px; }
+    .controls { display: flex; gap: 10px; margin-top: 15px; }
+    button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+    .btn-listen { background: #e8f0fe; color: #1a73e8; }
+    .btn-listen:hover { background: #d2e3fc; }
+    .btn-speak { background: #1a73e8; color: white; }
+    .btn-speak:hover { background: #1557b0; }
+    .btn-speak.recording { background: #d93025; animation: pulse 1.5s infinite; }
+    .result { margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; font-size: 0.9rem; display: none; }
+    .success { background: #e6f4ea; color: #137333; }
+    .retry { background: #fce8e6; color: #c5221f; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>✈️ Travel English AI (100 Frases)</h1>
+  
+  <label class="label">1. Selecciona el escenario:</label>
+  <select id="categorySelect" class="category-select" onchange="loadCategory()">
+    <option value="cat1">🛫 1. Aeropuerto y Control de Pasaportes</option>
+    <option value="cat2">🏨 2. En el Hotel y Alojamiento</option>
+    <option value="cat3">🍽️ 3. En el Restaurante y Cafetería</option>
+    <option value="cat4">🚌 4. Transporte e Indicaciones</option>
+    <option value="cat5">🛍️ 5. De Compras y Dinero</option>
+    <option value="cat6">🏛️ 6. Turismo, Entradas y Excursiones</option>
+    <option value="cat7">🚑 7. Salud, Emergencias y Seguridad</option>
+    <option value="cat8">🗺️ 8. Orientación y Preguntas Cotidianas</option>
+    <option value="cat9">🚗 9. Alquiler de Vehículos y Gasolinera</option>
+    <option value="cat10">👋 10. Despedida y Servicios Generales</option>
+  </select>
+
+  <label class="label">2. Elige la frase de práctica:</label>
+  <select id="phraseSelect" class="phrase-select" onchange="loadPhrase()">
+  </select>
+
+  <div class="box">
+    <div class="label" id="speakerLabel">Pregunta de la IA / Interlocutor</div>
+    <div id="aiTextEn" class="text-en">...</div>
+    <div id="aiTextEs" class="text-es">...</div>
+    <button class="btn-listen" style="margin-top: 8px; width: 100%;" onclick="playAI()">🔊 Escuchar Pronunciación Nativa</button>
+  </div>
+
+  <div class="box" style="border-color: #34a853;">
+    <div class="label">Tu respuesta objetivo en inglés</div>
+    <div id="userTextEn" class="text-en">...</div>
+    <div id="userTextEs" class="text-es">...</div>
+    <div id="userPhonetic" class="phonetic">...</div>
+  </div>
+
+  <div class="controls">
+    <button id="recordBtn" class="btn-speak" onclick="toggleRecognition()">🎙️ Presiona para Hablar</button>
+  </div>
+
+  <div id="resultBox" class="result"></div>
+</div>
+
+<script>
+  const fullData = {
+    cat1: [
+      { qEn: "Where is the check-in desk for flight 123?", qEs: "¿Dónde está el mostrador de facturación para el vuelo 123?", aEn: "It is located in Terminal 2, row B.", aEs: "Está ubicado en la Terminal 2, fila B.", phon: "It is lou-kei-tid in Ter-mi-nal tu, rou bi." },
+      { qEn: "May I see your passport and boarding pass, please?", qEs: "¿Puedo ver su pasaporte y tarjeta de embarque, por favor?", aEn: "Here you go.", aEs: "Aquí los tiene.", phon: "Jier yu gou." },
+      { qEn: "Are you checking any bags today?", qEs: "¿Va a facturar alguna maleta hoy?", aEn: "Yes, I have two suitcases to check.", aEs: "Sí, tengo dos maletas para facturar.", phon: "Yes, ai jav tu sut-kei-ses tu chek." },
+      { qEn: "Do I need to take out my laptop for security?", qEs: "¿Tengo que sacar mi portátil para el control de seguridad?", aEn: "Yes, please place it in a separate tray.", aEs: "Sí, por favor colóquelo en una bandeja separada.", phon: "Yes, plis pleis it in a se-pa-ret trei." },
+      { qEn: "What is the purpose of your visit?", qEs: "¿Cuál es el motivo de su visita?", aEn: "I am here for tourism.", aEs: "Estoy aquí por turismo.", phon: "Ai am jier for tu-ri-sam." },
+      { qEn: "How long will you be staying in the country?", qEs: "¿Cuánto tiempo se quedará en el país?", aEn: "I will be staying for two weeks.", aEs: "Me quedaré durante dos semanas.", phon: "Ai uil bi stei-ing for tu uiks." },
+      { qEn: "Where are you staying during your visit?", qEs: "¿Dónde se alojará durante su visita?", aEn: "I am staying at the Grand Hotel.", aEs: "Me alojaré en el Gran Hotel.", phon: "Ai am stei-ing at da Grand Jo-tel." },
+      { qEn: "Has this flight been delayed?", qEs: "¿Se ha retrasado este vuelo?", aEn: "Yes, it is delayed by 30 minutes.", aEs: "Sí, tiene un retraso de 30 minutos.", phon: "Yes, it is di-leid bai ter-ti mi-nits." },
+      { qEn: "Which gate does the flight to London depart from?", qEs: "¿De qué puerta sale el vuelo a Londres?", aEn: "It departs from Gate B12.", aEs: "Sale de la puerta B12.", phon: "It di-parts from Gueit bi-tuelv." },
+      { qEn: "Where can I claim my baggage?", qEs: "¿Dónde puedo recoger mi equipaje?", aEn: "Baggage claim is downstairs at belt number 4.", aEs: "La recogida de equipaje está abajo, en la cinta número 4.", phon: "Ba-guich cleim is daun-sters at belt nam-ber for." }
+    ],
+    cat2: [
+      { qEn: "Hello, I have a reservation under the name Smith.", qEs: "Hola, tengo una reserva a nombre de Smith.", aEn: "Welcome! Let me find your booking in the system.", aEs: "¡Bienvenido! Permítame buscar su reserva en el sistema.", phon: "Juel-cam! Let mi faind yur bu-king in da sis-tem." },
+      { qEn: "What time is check-in and check-out?", qEs: "¿A qué hora es el ingreso y la salida?", aEn: "Check-in is at 3 PM and check-out is at 11 AM.", aEs: "El check-in es a las 3 PM y el check-out a las 11 AM.", phon: "Chek-in is at zri pi-em and chek-aut is at i-le-ven ei-em." },
+      { qEn: "Is breakfast included in the price?", qEs: "¿El desayuno está incluido en el precio?", aEn: "Yes, breakfast is served daily from 7 to 10 AM.", aEs: "Sí, el desayuno se sirve a diario de 7 a 10 AM.", phon: "Yes, brek-fast is servd dei-li from se-ven tu ten ei-em." },
+      { qEn: "Could I get the Wi-Fi password, please?", qEs: "¿Me da la contraseña del Wi-Fi, por favor?", aEn: "Sure, the network name and password are on this card.", aEs: "Claro, el nombre de la red y la contraseña están en esta tarjeta.", phon: "Shur, da net-uerk neim and pas-uerd ar on dis card." },
+      { qEn: "Which floor is my room on?", qEs: "¿En qué piso está mi habitación?", aEn: "Your room is on the fourth floor, room 405.", aEs: "Su habitación está en el cuarto piso, habitación 405.", phon: "Yur rum is on da forth flor, rum for-o-faiv." },
+      { qEn: "Is there an elevator available?", qEs: "¿Hay ascensor disponible?", aEn: "Yes, the elevators are just past the reception desk.", aEs: "Sí, los ascensores están justo pasando la recepción.", phon: "Yes, da e-le-vei-tors ar chast past da re-sep-shan desk." },
+      { qEn: "Can I store my luggage here after check-out?", qEs: "¿Puedo guardar mi equipaje aquí después del check-out?", aEn: "Yes, we can hold your bags in the luggage room.", aEs: "Sí, podemos guardar sus maletas en el almacén de equipaje.", phon: "Yes, ui can chould yur bags in da la-guich rum." },
+      { qEn: "Could I get extra towels for my room?", qEs: "¿Podría pedir toallas adicionales para mi habitación?", aEn: "Of course, housekeeping will bring them right away.", aEs: "Por supuesto, el personal de limpieza se las llevará enseguida.", phon: "Of cors, jaus-ki-ping uil bring dem rait a-uei." },
+      { qEn: "How do I call reception from my room?", qEs: "¿Cómo llamo a recepción desde mi habitación?", aEn: "Just dial zero on the room telephone.", aEs: "Solo marque cero en el teléfono de la habitación.", phon: "Chast dai-al zi-rou on da rum te-le-foun." },
+      { qEn: "Can you request a taxi for me tomorrow morning?", qEs: "¿Puede pedirme un taxi para mañana por la mañana?", aEn: "Certainly, what time would you like it to arrive?", aEs: "Con mucho gusto, ¿a qué hora desea que llegue?", phon: "Ser-ten-li, juat taim uuld yu laik it tu a-raiv?" }
+    ],
+    cat3: [
+      { qEn: "Do you have a table for two available?", qEs: "¿Tienen una mesa para dos disponible?", aEn: "Yes, right this way, please.", aEs: "Sí, por aquí, por favor.", phon: "Yes, rait dis uei, plis." },
+      { qEn: "Could we see the menu, please?", qEs: "¿Podríamos ver el menú, por favor?", aEn: "Here are your menus. Today's special is roasted chicken.", aEs: "Aquí tienen sus menús. El plato del día es pollo asado.", phon: "Jier ar yur me-nius. Tu-deis spe-shal is rous-ted chi-ken." },
+      { qEn: "Are you ready to order?", qEs: "¿Están listos para pedir?", aEn: "Yes, I would like the grilled fish, please.", aEs: "Sí, me gustaría el pescado a la plancha, por favor.", phon: "Yes, ai uuld laik da grild fish, plis." },
+      { qEn: "What do you recommend from the menu?", qEs: "¿Qué me recomienda del menú?", aEn: "Our homemade pasta is very popular.", aEs: "Nuestra pasta casera es muy popular.", phon: "Aur joum-meid pas-ta is ve-ri po-piu-lar." },
+      { qEn: "Does this dish contain nuts or gluten?", qEs: "¿Este plato contiene frutos secos o gluten?", aEn: "No, it is completely nut-free and gluten-free.", aEs: "No, está totalmente libre de frutos secos y gluten.", phon: "Nou, it is com-plit-li nat-fri and glu-ten-fri." },
+      { qEn: "Could I have a glass of tap water, please?", qEs: "¿Me da un vaso de agua del grifo, por favor?", aEn: "Yes, I will bring that right out for you.", aEs: "Sí, se lo traigo en un momento.", phon: "Yes, ai uil bring dat rait aut for yu." },
+      { qEn: "Is there a vegetarian option on the menu?", qEs: "¿Hay alguna opción vegetariana en el menú?", aEn: "Yes, we have a fresh Mediterranean salad and vegetable soup.", aEs: "Sí, tenemos una ensalada mediterránea fresca y sopa de verduras.", phon: "Yes, ui jav a fresh Me-di-te-rei-nian sa-lad and vech-ta-bal sup." },
+      { qEn: "How would you like your steak cooked?", qEs: "¿Cómo desea la cocción de su filete?", aEn: "Medium rare, please.", aEs: "Al punto, por favor.", phon: "Mi-di-um rer, plis." },
+      { qEn: "Can we split the bill?", qEs: "¿Podemos dividir la cuenta?", aEn: "Yes, we can split it evenly or pay separately.", aEs: "Sí, podemos dividirla a partes iguales o pagar por separado.", phon: "Yes, ui can split it i-ven-li or pei se-pa-ret-li." },
+      { qEn: "Could we have the check, please?", qEs: "¿Nos trae la cuenta, por favor?", aEn: "Here is your check. You can pay by card or cash.", aEs: "Aquí tiene su cuenta. Puede pagar con tarjeta o en efectivo.", phon: "Jier is yur chek. Yu can pei bai card or cash." }
+    ],
+    cat4: [
+      { qEn: "Excuse me, how do I get to the city center?", qEs: "Disculpe, ¿cómo llego al centro de la ciudad?", aEn: "You can take line 1 on the subway or catch bus 22.", aEs: "Puede tomar la línea 1 del metro o el autobús 22.", phon: "Yu can teik lain uan on da sab-uei or cach bas tuen-ti-tu." },
+      { qEn: "Where is the nearest subway station?", qEs: "¿Dónde está la estación de metro más cercana?", aEn: "It is two blocks straight down this street on your right.", aEs: "Está a dos calles recto por esta calle a su derecha.", phon: "It is tu bloks streit daun dis strit on yur rait." },
+      { qEn: "How much is a single ticket to the museum?", qEs: "¿Cuánto cuesta un billete sencillo al museo?", aEn: "A single ticket costs three dollars.", aEs: "Un billete sencillo cuesta tres dólares.", phon: "A sin-gal ti-ket costs zri do-lars." },
+      { qEn: "Does this train go directly to the airport?", qEs: "¿Este tren va directo al aeropuerto?", aEn: "No, you will need to change trains at Central Station.", aEs: "No, tendrá que cambiar de tren en la Estación Central.", phon: "Nou, yu uil nid tu cheinch treins at Sen-tral Stei-shan." },
+      { qEn: "How long does it take to walk to the beach?", qEs: "¿Cuánto se tarda en llegar caminando a la playa?", aEn: "It takes about fifteen minutes on foot.", aEs: "Toma unos quince minutos a pie.", phon: "It teiks a-baut fif-tin mi-nits on fut." },
+      { qEn: "Where can I buy a daily transit pass?", qEs: "¿Dónde puedo comprar un pase diario de transporte?", aEn: "You can buy one at any ticket machine in the station.", aEs: "Puede comprar uno en cualquier máquina de billetes en la estación.", phon: "Yu can bai uan at e-ni ti-ket ma-shin in da stei-shan." },
+      { qEn: "Is this seat taken?", qEs: "¿Está ocupado este asiento?", aEn: "No, it is free. Go ahead and sit down.", aEs: "No, está libre. Adelante, siéntese.", phon: "Nou, it is fri. Gou a-jed and sit daun." },
+      { qEn: "Which bus goes to the main square?", qEs: "¿Qué autobús va a la plaza principal?", aEn: "Bus number 5 takes you straight there.", aEs: "El autobús número 5 le lleva directo allí.", phon: "Bas nam-ber faiv teiks yu streit djer." },
+      { qEn: "Could you tell me when to get off for the cathedral?", qEs: "¿Podría decirme cuándo bajarme para la catedral?", aEn: "Sure, it is the next stop coming up.", aEs: "Claro, es la siguiente parada.", phon: "Shur, it is da next stop ca-ming ap." },
+      { qEn: "How much is the taxi fare to the hotel?", qEs: "¿Cuánto cuesta la tarifa de taxi al hotel?", aEn: "It usually costs around twenty-five euros.", aEs: "Suele costar unos veinticinco euros.", phon: "It iu-shu-a-li costs a-raund tuen-ti-faiv iu-ros." }
+    ],
+    cat5: [
+      { qEn: "How much does this souvenir cost?", qEs: "¿Cuánto cuesta este recuerdo?", aEn: "That item costs ten euros.", aEs: "Ese artículo cuesta diez euros.", phon: "Dat ai-tem costs ten iu-ros." },
+      { qEn: "Do you accept credit cards?", qEs: "¿Aceptan tarjetas de crédito?", aEn: "Yes, we accept all major cards and contactless payment.", aEs: "Sí, aceptamos las principales tarjetas y pago sin contacto.", phon: "Yes, ui ak-sept ol mei-chor cards and con-tact-les pei-ment." },
+      { qEn: "Is there an ATM near here?", qEs: "¿Hay un cajero automático cerca de aquí?", aEn: "Yes, there is one next to the supermarket across the street.", aEs: "Sí, hay uno al lado del supermercado cruzando la calle.", phon: "Yes, djer is uan next tu da su-per-mar-ket a-cros da strit." },
+      { qEn: "Can I try this shirt on?", qEs: "¿Puedo probarme esta camisa?", aEn: "Yes, the fitting rooms are at the back of the store.", aEs: "Sí, los probadores están al fondo de la tienda.", phon: "Yes, da fi-ting rums ar at da bak of da stor." },
+      { qEn: "Do you have this dress in a medium size?", qEs: "¿Tiene este vestido en talla mediana?", aEn: "Let me check our stock in the back room.", aEs: "Déjeme consultar nuestro inventario en el almacén.", phon: "Let mi chek aur stok in da bak rum." },
+      { qEn: "What time does the shopping mall close?", qEs: "¿A qué hora cierra el centro comercial?", aEn: "It closes at nine o'clock in the evening.", aEs: "Cierra a las nueve de la noche.", phon: "It clou-ses at nain o-clok in da iv-ning." },
+      { qEn: "Can I get a tax refund form for this purchase?", qEs: "¿Puedo obtener un formulario de devolución de impuestos por esta compra?", aEn: "Yes, if you spend over fifty dollars, we can issue one.", aEs: "Sí, si gasta más de cincuenta dólares, podemos emitir uno.", phon: "Yes, if yu spend ou-ver fif-ti do-lars, ui can i-shu uan." },
+      { qEn: "Is this item on sale?", qEs: "¿Este artículo está en oferta?", aEn: "Yes, it has a twenty percent discount today.", aEs: "Sí, hoy tiene un veinte por ciento de descuento.", phon: "Yes, it jas a tuen-ti per-sent dis-caunt tu-dei." },
+      { qEn: "Where is the cash register?", qEs: "¿Dónde está la caja registradora?", aEn: "The checkout counter is near the front exit.", aEs: "La caja está cerca de la salida principal.", phon: "Da chek-aut caun-ter is nir da front ex-it." },
+      { qEn: "Could I get a receipt, please?", qEs: "¿Me da un recibo, por favor?", aEn: "Here is your receipt inside the bag.", aEs: "Aquí tiene su recibo dentro de la bolsa.", phon: "Jier is yur ri-sit in-said da bag." }
+    ],
+    cat6: [
+      { qEn: "What time does the museum open?", qEs: "¿A qué hora abre el museo?", aEn: "It opens at nine in the morning every day except Monday.", aEs: "Abre a las nueve de la mañana todos los días excepto los lunes.", phon: "It ou-pens at nain in da mor-ning ev-ri dei ex-sept man-dei." },
+      { qEn: "Where can I purchase entrance tickets?", qEs: "¿Dónde puedo comprar las entradas?", aEn: "You can buy them online or at the ticket booth over there.", aEs: "Puede comprarlas en línea o en la taquilla de allí.", phon: "Yu can bai dem on-lain or at da ti-ket buz ou-ver djer." },
+      { qEn: "Are there discounts for students or seniors?", qEs: "¿Hay descuentos para estudiantes o adultos mayores?", aEn: "Yes, show a valid ID to get a reduced price.", aEs: "Sí, muestre una identificación válida para obtener un precio reducido.", phon: "Yes, shou a va-lid ai-di tu guet a ri-diust prais." },
+      { qEn: "Do I need to book a ticket in advance?", qEs: "¿Necesito reservar entrada con antelación?", aEn: "It is highly recommended during peak season.", aEs: "Es muy recomendable durante la temporada alta.", phon: "It is jai-li re-co-men-ded diu-ring pik si-son." },
+      { qEn: "Is taking photos allowed inside the gallery?", qEs: "¿Se permite hacer fotos dentro de la galería?", aEn: "You can take photos without flash.", aEs: "Puede hacer fotos sin flash.", phon: "Yu can teik fo-tos ui-daut flash." },
+      { qEn: "Does the tour include an audio guide?", qEs: "¿El recorrido incluye audoguía?", aEn: "Yes, audio guides are included in several languages.", aEs: "Sí, se incluyen audoguías en varios idiomas.", phon: "Yes, au-di-o gaids ar in-clu-ded in se-ve-ral lang-gui-ches." },
+      { qEn: "Where does the sightseeing bus tour start?", qEs: "¿Dónde empieza el recorrido del autobús turístico?", aEn: "It starts right in front of the central station.", aEs: "Empieza justo enfrente de la estación central.", phon: "It starts rait in front of da sen-tral stei-shan." },
+      { qEn: "How long does the guided walking tour last?", qEs: "¿Cuánto dura la visita guiada a pie?", aEn: "The walking tour takes approximately two hours.", aEs: "La visita a pie dura aproximadamente dos horas.", phon: "Da uo-king tur teiks a-pro-xi-met-li tu au-ers." },
+      { qEn: "Is there an information center nearby?", qEs: "¿Hay un centro de información cerca?", aEn: "Yes, the tourist office is on the main square.", aEs: "Sí, la oficina de turismo está en la plaza principal.", phon: "Yes, da tu-rist o-fis is on da mein scuer." },
+      { qEn: "What are the top attractions to visit in this town?", qEs: "¿Cuáles son las principales atracciones para visitar en esta ciudad?", aEn: "The old castle and the botanical gardens are must-sees.", aEs: "El castillo antiguo y el jardín botánico son imprescindibles.", phon: "Da ould cas-tel and da bo-ta-ni-cal gar-dens ar mast-sis." }
+    ],
+    cat7: [
+      { qEn: "Where is the nearest pharmacy?", qEs: "¿Dónde está la farmacia más cercana?", aEn: "There is a 24-hour pharmacy down the block.", aEs: "Hay una farmacia de 24 horas a una manzana.", phon: "Djer is a tuen-ti-for au-er far-ma-si daun da blok." },
+      { qEn: "Can you help me? I have lost my wallet.", qEs: "¿Puede ayudarme? He perdido mi cartera.", aEn: "Let's report it to the nearest police station immediately.", aEs: "Vamos a denunciarlo inmediatamente en la comisaría más cercana.", phon: "Lets ri-port it tu da nir-est po-lis stei-shan i-mi-diat-li." },
+      { qEn: "Where is the local police station?", qEs: "¿Dónde está la comisaría de policía local?", aEn: "It is located right behind the city hall.", aEs: "Está ubicada justo detrás del ayuntamiento.", phon: "It is lou-kei-tid rait bi-jaind da si-ti jol." },
+      { qEn: "I feel unwell, do you have aspirin?", qEs: "Me siento mal, ¿tiene aspirinas?", aEn: "Yes, I have some in my first aid kit.", aEs: "Sí, tengo algunas en mi botiquín de primeros auxilios.", phon: "Yes, ai jav sam in mai ferst eid kit." },
+      { qEn: "Could you call an ambulance, please?", qEs: "¿Podría llamar a una ambulancia, por favor?", aEn: "Yes, I am calling emergency services right now.", aEs: "Sí, estoy llamando a los servicios de emergencia ahora mismo.", phon: "Yes, ai am co-ling i-mer-chen-si ser-vi-ses rait nau." },
+      { qEn: "Where is the nearest hospital?", qEs: "¿Dónde está el hospital más cercano?", aEn: "The hospital is a ten-minute drive from here.", aEs: "El hospital está a diez minutos en coche de aquí.", phon: "Da jos-pi-tal is a ten-mi-nit draiv from jier." },
+      { qEn: "Is the tap water safe to drink here?", qEs: "¿Es segura el agua del grifo para beber aquí?", aEn: "Yes, the tap water is clean and safe.", aEs: "Sí, el agua del grifo es limpia y segura.", phon: "Yes, da tap uo-ter is clin and seif." },
+      { qEn: "I lost my passport, what should I do?", qEs: "Perdí mi pasaporte, ¿qué debo hacer?", aEn: "You need to contact your embassy as soon as possible.", aEs: "Necesita contactar con su embajada lo antes posible.", phon: "Yu nid tu con-tact yur em-ba-si as sun as po-si-bal." },
+      { qEn: "Do you speak Spanish?", qEs: "¿Habla español?", aEn: "A little bit, but I speak fluent English.", aEs: "Un poco, pero hablo inglés fluido.", phon: "A li-tel bit, bat ai spik flu-ent ing-lish." },
+      { qEn: "Could you please speak a little slower?", qEs: "¿Podría hablar un poco más despacio, por favor?", aEn: "Of course, I apologize for speaking too fast.", aEs: "Por supuesto, disculpe por hablar demasiado rápido.", phon: "Of cors, ai a-po-lo-chais for spi-king tu fast." }
+    ],
+    cat8: [
+      { qEn: "Excuse me, do you know where the restroom is?", qEs: "Disculpe, ¿sabe dónde está el baño?", aEn: "The restrooms are down the hallway on the left.", aEs: "Los baños están al final del pasillo a la izquierda.", phon: "Da rest-rums ar daun da jol-uei on da left." },
+      { qEn: "Could you take a photo of us, please?", qEs: "¿Podría hacernos una foto, por favor?", aEn: "Sure, press this button when you are ready.", aEs: "Claro, pulse este botón cuando estén listos.", phon: "Shur, pres dis ba-ton juen yu ar re-di." },
+      { qEn: "Is there public Wi-Fi available here?", qEs: "¿Hay Wi-Fi público disponible aquí?", aEn: "Yes, connect to the city guest network.", aEs: "Sí, conéctese a la red de invitados de la ciudad.", phon: "Yes, co-nect tu da si-ti guest net-uerk." },
+      { qEn: "What is the weather forecast for tomorrow?", qEs: "¿Cuál es el pronóstico del tiempo para mañana?", aEn: "It is expected to be sunny and warm.", aEs: "Se espera que esté soleado y cálido.", phon: "It is ex-pec-ted tu bi sa-ni and uorm." },
+      { qEn: "Do I need an umbrella today?", qEs: "¿Necesito un paraguas hoy?", aEn: "Yes, it looks like it might rain this afternoon.", aEs: "Sí, parece que podría llover esta tarde.", phon: "Yes, it luks laik it mait rein dis af-ter-nun." },
+      { qEn: "Where can I rent a bicycle?", qEs: "¿Dónde puedo alquilar una bicicleta?", aEn: "There is a bike rental shop by the park entrance.", aEs: "Hay una tienda de alquiler de bicicletas junto a la entrada del parque.", phon: "Djer is a baik ren-tal shop bai da park en-trans." },
+      { qEn: "Is this neighborhood safe at night?", qEs: "¿Es seguro este barrio de noche?", aEn: "Yes, it is very peaceful and well-lit.", aEs: "Sí, es muy tranquilo y está bien iluminado.", phon: "Yes, it is ve-ri pis-ful and uel-lit." },
+      { qEn: "What time does the beach close?", qEs: "¿A qué hora cierra la playa?", aEn: "The beach is open 24 hours, but lifeguards leave at 7 PM.", aEs: "La playa está abierta las 24 horas, pero los socorristas se van a las 19:00.", phon: "Da bich is ou-pen tuen-ti-for au-ers, bat laif-gards liv at se-ven pi-em." },
+      { qEn: "Are there any good coffee shops around here?", qEs: "¿Hay buenas cafeterías por aquí cerca?", aEn: "Yes, there is a great cafe around the corner.", aEs: "Sí, hay una cafetería excelente a la vuelta de la esquina.", phon: "Yes, djer is a greit ca-fei a-raund da cor-ner." },
+      { qEn: "Can I pay with foreign currency?", qEs: "¿Puedo pagar con moneda extranjera?", aEn: "No, we only accept the local currency or card.", aEs: "No, solo aceptamos la moneda local o tarjeta.", phon: "Nou, ui on-li ak-sept da lou-cal cu-ren-si or card." }
+    ],
+    cat9: [
+      { qEn: "Where can I rent a car?", qEs: "¿Dónde puedo alquilar un coche?", aEn: "There are several car rental desks at the airport arrival hall.", aEs: "Hay varios mostradores de alquiler de coches en la sala de llegadas del aeropuerto.", phon: "Djer ar se-ve-ral car ren-tal desks at da er-port a-rai-val jol." },
+      { qEn: "Do I need an international driving permit?", qEs: "¿Necesito un permiso internacional de conducción?", aEn: "Yes, you need a valid license and the international permit.", aEs: "Sí, necesita su carné válido y el permiso internacional.", phon: "Yes, yu nid a va-lid lai-sens and da in-ter-na-sho-nal per-mit." },
+      { qEn: "Is insurance included in the rental price?", qEs: "¿El seguro está incluido en el precio del alquiler?", aEn: "Basic insurance is included, but full coverage is optional.", aEs: "El seguro básico está incluido, pero la cobertura total es opcional.", phon: "Bei-sic in-shu-rans is in-clu-ded, bat ful co-ve-reich is op-sho-nal." },
+      { qEn: "Does the car run on petrol or diesel?", qEs: "¿El coche funciona con gasolina o diésel?", aEn: "This car takes unleaded petrol.", aEs: "Este coche usa gasolina sin plomo.", phon: "Dis car teiks an-le-ded pe-trol." },
+      { qEn: "Where is the nearest gas station?", qEs: "¿Dónde está la gasolinera más cercana?", aEn: "It is two miles ahead on the main highway.", aEs: "Está a dos millas adelante en la carretera principal.", phon: "It is tu mails a-jed on da mein jai-uei." },
+      { qEn: "How do I pay for parking here?", qEs: "¿Cómo pago el aparcamiento aquí?", aEn: "Use the parking meter app or pay at the machine over there.", aEs: "Use la aplicación del parquímetro o pague en la máquina de allí.", phon: "Ius da par-king mi-ter ap or pei at da ma-shin ou-ver djer." },
+      { qEn: "Is parking free on Sundays?", qEs: "¿El aparcamiento es gratuito los domingos?", aEn: "Yes, street parking is free on Sundays.", aEs: "Sí, el aparcamiento en la calle es gratuito los domingos.", phon: "Yes, strit par-king is fri on san-deis." },
+      { qEn: "Do I need to return the car with a full tank of fuel?", qEs: "¿Tengo que devolver el coche con el depósito lleno de combustible?", aEn: "Yes, please return it with the same level of fuel.", aEs: "Sí, por favor devuélvalo con el mismo nivel de combustible.", phon: "Yes, plis ri-turn it ui-d da seim le-vel of fiu-el." },
+      { qEn: "Is there a toll road on this route?", qEs: "¿Hay alguna carretera de peaje en esta ruta?", aEn: "Yes, you will pass two toll booths.", aEs: "Sí, pasará por dos casetas de peaje.", phon: "Yes, yu uil pas tu toul buzs." },
+      { qEn: "Where can I park my car safely overnight?", qEs: "¿Dónde puedo aparcar mi coche de forma segura por la noche?", aEn: "There is a underground paid garage next to the hotel.", aEs: "Hay un garaje subterráneo de pago al lado del hotel.", phon: "Djer is an an-der-graund peid ga-rach next tu da jo-tel." }
+    ],
+    cat10: [
+      { qEn: "Could you recommend a good place to listen to live music?", qEs: "¿Me recomienda un buen lugar para escuchar música en vivo?", aEn: "The jazz bar downtown has great live bands on weekends.", aEs: "El bar de jazz del centro tiene muy buenas bandas en vivo los fines de semana.", phon: "Da chas bar daun-taun jas greit laiv bands on ui-kends." },
+      { qEn: "Where can I buy a local SIM card?", qEs: "¿Dónde puedo comprar una tarjeta SIM local?", aEn: "You can buy one at the mobile phone shop in the station.", aEs: "Puede comprar una en la tienda de telefonía de la estación.", phon: "Yu can bai uan at da mou-bil foun shop in da stei-shan." },
+      { qEn: "Is there a luggage storage service at the train station?", qEs: "¿Hay servicio de consigna de equipajes en la estación de tren?", aEn: "Yes, there are automatic lockers on platform 1.", aEs: "Sí, hay taquillas automáticas en el andén 1.", phon: "Yes, djer ar o-to-ma-tic lo-kers on plat-form uan." },
+      { qEn: "What time does the post office open?", qEs: "¿A qué hora abre la oficina de correos?", aEn: "It opens at 8:30 AM on weekdays.", aEs: "Abre a las 8:30 AM los días laborables.", phon: "It ou-pens at eit ter-ti ei-em on ui-kdeis." },
+      { qEn: "Where can I drop off my postcard?", qEs: "¿Dónde puedo echar mi tarjeta postal?", aEn: "You can drop it in the blue mailbox over there.", aEs: "Puede echarla en el buzón azul de allí.", phon: "Yu can drop it in da blu meil-box ou-ver djer." },
+      { qEn: "Can I charge my phone here?", qEs: "¿Puedo cargar mi teléfono aquí?", aEn: "Yes, there are charging outlets near the seating area.", aEs: "Sí, hay enchufes cerca de la zona de asientos.", phon: "Yes, djer ar char-ching aut-lets nir da si-ting e-ri-a." },
+      { qEn: "Do I need to leave a tip in restaurants here?", qEs: "¿Es necesario dejar propina en los restaurantes aquí?", aEn: "Tipping around ten percent is customary if service is good.", aEs: "Dejar alrededor del diez por ciento es costumbre si el servicio es bueno.", phon: "Ti-ping a-raund ten per-sent is cas-to-ma-ri if ser-vis is gud." },
+      { qEn: "Is there an English-speaking guide for the tour?", qEs: "¿Hay un guía que hable inglés para la excursión?", aEn: "Yes, an English guide leads the group at 10 AM.", aEs: "Sí, un guía en inglés lidera el grupo a las 10 AM.", phon: "Yes, an ing-lish gaid lids da grup at ten ei-em." },
+      { qEn: "Thank you very much for all your help!", qEs: "¡Muchas gracias por toda su ayuda!", aEn: "You are very welcome! Have a wonderful trip!", aEs: "¡De nada! ¡Que tenga un viaje maravilloso!", phon: "Yu ar ve-ri uel-cam! Jav a uan-der-ful trip!" },
+      { qEn: "Have a safe flight back home!", qEs: "¡Que tenga un buen vuelo de regreso a casa!", aEn: "Thank you! Good-bye!", aEs: "¡Gracias! ¡Adiós!", phon: "Zank yu! Gud-bai!" }
+    ]
+  };
+
+  let currentCategory = 'cat1';
+  let currentPhraseIndex = 0;
+  let isRecording = false;
+  let recognition;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onresult = (event) => {
+      const speechToText = event.results[0][0].transcript;
+      evaluateSpeech(speechToText);
+    };
+
+    recognition.onerror = () => {
+      showResult("No se pudo procesar el audio. Inténtalo de nuevo.", false);
+      stopRecording();
+    };
+
+    recognition.onend = () => {
+      stopRecording();
+    };
+  }
+
+  function loadCategory() {
+    currentCategory = document.getElementById('categorySelect').value;
+    const phraseSelect = document.getElementById('phraseSelect');
+    phraseSelect.innerHTML = '';
+    
+    fullData[currentCategory].forEach((item, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.innerText = `Frase ${index + 1}: ${item.qEs.substring(0, 40)}...`;
+      phraseSelect.appendChild(option);
+    });
+
+    currentPhraseIndex = 0;
+    loadPhrase();
+  }
+
+  function loadPhrase() {
+    currentPhraseIndex = parseInt(document.getElementById('phraseSelect').value) || 0;
+    const item = fullData[currentCategory][currentPhraseIndex];
+    
+    document.getElementById('aiTextEn').innerText = item.qEn;
+    document.getElementById('aiTextEs').innerText = item.qEs;
+    document.getElementById('userTextEn').innerText = item.aEn;
+    document.getElementById('userTextEs').innerText = item.aEs;
+    document.getElementById('userPhonetic').innerText = "Pronunciación: " + item.phon;
+    
+    document.getElementById('resultBox').style.display = 'none';
+  }
+
+  function playAI() {
+    const item = fullData[currentCategory][currentPhraseIndex];
+    const utterance = new SpeechSynthesisUtterance(item.qEn);
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function toggleRecognition() {
+    if (!recognition) {
+      alert("Tu navegador no soporta el reconocimiento de voz. Por favor usa Google Chrome.");
+      return;
+    }
+    if (!isRecording) {
+      recognition.start();
+      isRecording = true;
+      const btn = document.getElementById('recordBtn');
+      btn.innerText = "🛑 Escuchando tu voz...";
+      btn.classList.add('recording');
+    } else {
+      recognition.stop();
+      stopRecording();
+    }
+  }
+
+  function stopRecording() {
+    isRecording = false;
+    const btn = document.getElementById('recordBtn');
+    btn.innerText = "🎙️ Presiona para Hablar";
+    btn.classList.remove('recording');
+  }
+
+  function evaluateSpeech(textDicho) {
+    const item = fullData[currentCategory][currentPhraseIndex];
+    const esperado = item.aEn.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+    const obtenido = textDicho.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+
+    if (obtenido.includes(esperado) || esperado.includes(obtenido)) {
+      showResult(`¡Excelente! Pronunciaste: "${textDicho}"`, true);
+    } else {
+      showResult(`Entendido: "${textDicho}". Intenta repetir ajustando la pronunciación.`, false);
+    }
+  }
+
+  function showResult(msg, isSuccess) {
+    const box = document.getElementById('resultBox');
+    box.innerText = msg;
+    box.className = "result " + (isSuccess ? "success" : "retry");
+    box.style.display = 'block';
+  }
+
+  // Inicializar al cargar la página
+  window.onload = loadCategory;
+</script>
+
+</body>
+</html>
